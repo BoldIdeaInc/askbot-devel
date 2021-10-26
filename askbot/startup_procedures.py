@@ -61,7 +61,7 @@ def domain_is_bad():
 
 def askbot_warning(line):
     """prints a warning with the nice header, but does not quit"""
-    print(str(line).encode('utf-8'), file=sys.stderr)
+    print(line, file=sys.stderr)
 
 
 def print_errors(error_messages, header=None, footer=None):
@@ -164,8 +164,7 @@ def test_middleware():
     #        'debug_toolbar.middleware.DebugToolbarMiddleware',
     #    )
     required_middleware.extend([
-        'askbot.middleware.view_log.ViewLogMiddleware',
-        'askbot.middleware.spaceless.SpacelessMiddleware',
+        'askbot.middleware.view_log.ViewLogMiddleware'
     ])
     found_middleware = [x for x in django_settings.MIDDLEWARE
                         if x in required_middleware]
