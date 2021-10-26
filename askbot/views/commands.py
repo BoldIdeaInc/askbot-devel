@@ -39,9 +39,10 @@ from askbot.conf import settings as askbot_settings
 from askbot.utils import category_tree
 from askbot.utils import decorators
 from askbot.utils import url_utils
+from askbot.utils import markup
 from askbot.utils.forms import get_db_object_or_404
 from askbot.utils.functions import decode_and_loads
-from askbot.utils.html import get_login_link
+from askbot.utils.html import get_login_link, sanitize_html
 from askbot.utils.akismet_utils import akismet_check_spam
 from django.template import RequestContext
 from askbot.skins.shortcuts import render_into_skin_as_string
@@ -659,7 +660,20 @@ def get_question_title(request):
 def get_post_body(request):
     post_id = request.GET['post_id']
     post = get_object_or_404(models.Post, pk=post_id)
-    return {'body_text': post.text}
+    return {
+        'body_text': post.text
+    }
+
+
+@decorators.ajax_only
+@decorators.post_only
+def render_markdown(request):
+    text = request.POST.get('text', '')
+    markdowner = markup.get_parser()
+    sanitized_html = sanitize_html(markdowner.convert(text))
+    return {
+        'html': sanitized_html
+    }
 
 
 @csrf.csrf_protect

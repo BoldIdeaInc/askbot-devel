@@ -24,7 +24,24 @@ AskbotMarkdownConverter.prototype.scheduleMathJaxRendering = function () {
     this._timeout = setTimeout(renderFunc, 500);
 };
 
-AskbotMarkdownConverter.prototype.makeHtml = function (text) {
+AskbotMarkdownConverter.prototype.makeHtml = function (text, wmd) {
+    const renderMarkdownUrl = askbot.urls.renderMarkdown;
+    return new Promise(function(resolve, reject) {
+        $.ajax({
+            type: 'POST',
+            url: renderMarkdownUrl,
+            data: {text: text},
+            cache: false,
+            success: function(data){
+                resolve(data.html);
+            },
+            error: function(xhr, status, error) {
+                reject(error);
+            }
+        });
+    });
+    // disabling client-side markdown preview
+    /*
     var makeHtmlBase = this._converter.makeHtml;
     if (askbot['settings']['mathjaxEnabled'] === false){
         return makeHtmlBase(text);
@@ -40,4 +57,5 @@ AskbotMarkdownConverter.prototype.makeHtml = function (text) {
         console.log('Could not load MathJax');
         return makeHtmlBase(text);
     }
+    */
 };

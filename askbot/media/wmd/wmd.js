@@ -1,5 +1,41 @@
 var Attacklab = Attacklab || {};
 
+const throttle = (fn, wait) => {
+  let inThrottle, lastFn, lastTime;
+  return function() {
+    const context = this,
+      args = arguments;
+    if (!inThrottle) {
+      fn.apply(context, args);
+      lastTime = Date.now();
+      inThrottle = true;
+    } else {
+      clearTimeout(lastFn);
+      lastFn = setTimeout(function() {
+        if (Date.now() - lastTime >= wait) {
+          fn.apply(context, args);
+          lastTime = Date.now();
+        }
+      }, Math.max(wait - (Date.now() - lastTime), 0));
+    }
+  };
+};
+
+function debounce(func, wait, immediate) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments;
+		var later = function() {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+		var callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) func.apply(context, args);
+	};
+};
+
 Attacklab.wmdBase = function(){
 
 	// A few handy aliases for readability.
@@ -1322,6 +1358,7 @@ util.prompt = function(text, defaultInputText, makeLinkMarkdown, dialogType){
 
 		// Convert the contents of the input textarea to HTML in the output/preview panels.
 		var convertToHtml = function(){
+            throw new Error('Server-side Markdown converter not yet implemented');
 
 			if (wmd.showdown) {
 				var markdownConverter = getAskbotMarkdownConverter();
@@ -1970,7 +2007,7 @@ util.prompt = function(text, defaultInputText, makeLinkMarkdown, dialogType){
 			return result;
 		};
 
-		var makePreviewHtml = function(){
+		var makePreviewHtml = debounce(function(){
 
 			// If there are no registered preview and output panels
 			// there is nothing to do.
@@ -1993,17 +2030,28 @@ util.prompt = function(text, defaultInputText, makeLinkMarkdown, dialogType){
 			}
 
 			if (converter) {
-				text = converter.makeHtml(text);
+				text = converter.makeHtml(text, wmd);
 			}
 
-			// Calculate the processing time of the HTML creation.
-			// It's used as the delay time in the event listener.
-			var currTime = new Date().getTime();
-			elapsedTime = currTime - prevTime;
+            // Allow async preview rendering
+            var textPromise;
+            if (text instanceof Promise) {
+                textPromise = text;
+            } else {
+                textPromise = Promise.resolve(text);
+            }
+            textPromise.then(function(text) {
+                // Calculate the processing time of the HTML creation.
+                // It's used as the delay time in the event listener.
+                var currTime = new Date().getTime();
+                elapsedTime = currTime - prevTime;
 
-			pushPreviewHtml(text);
-			htmlOut = text;
-		};
+                pushPreviewHtml(text);
+                htmlOut = text;
+            }).catch(function(error) {
+                throw new error(error);
+            });
+		}, 500);
 
 		// setTimeout is already used.  Used as an event listener.
 		var applyTimeout = function(){

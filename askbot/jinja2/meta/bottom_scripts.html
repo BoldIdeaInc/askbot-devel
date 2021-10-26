@@ -28,6 +28,7 @@
     askbot['urls']['apiGetQuestions'] = '{{ url('api_get_questions') }}';
     askbot['urls']['ask'] = '{{ url('ask') }}';
 	askbot['urls']['questions'] = '{{ url('questions') }}';
+    askbot['urls']['renderMarkdown'] = '{{ url('render_markdown') }}';
     askbot['settings']['groupsEnabled'] = {{ settings.GROUPS_ENABLED|as_js_bool }};
     askbot['settings']['static_url'] = '{{ settings.STATIC_URL }}';
     askbot['settings']['minSearchWordLength'] = {{ min_search_word_length }};

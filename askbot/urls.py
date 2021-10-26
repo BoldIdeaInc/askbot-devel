@@ -258,6 +258,11 @@ urlpatterns = [
         name='get_post_body'
     ),
     service_url(
+        r'^render-markdown/',
+        views.commands.render_markdown,
+        name='render_markdown',
+    ),
+    service_url(
         r'^set-post-body/',
         views.commands.set_post_body,
         name='set_post_body'
